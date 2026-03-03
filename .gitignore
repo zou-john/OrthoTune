@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-medtune_env
+orthotune
+__pycache__/
 .env
-=======
->>>>>>> 2e1e95e (init)
+output

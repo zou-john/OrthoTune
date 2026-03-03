@@ -1,5 +1,6 @@
-conda create -n medtune python=3.10
 
-conda activate medtune
+python3 -m venv orthotune
+
+source orthotune/bin/activate
 
 pip install -r requirements.txt

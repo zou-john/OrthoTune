@@ -1,2 +1,4 @@
-medtune_env
+orthotune
+__pycache__/
 .env
+output

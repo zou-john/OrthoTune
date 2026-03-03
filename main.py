@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 import os
 import re
@@ -145,3 +146,12 @@ def process_pdfs():
 # ==========================
 if __name__ == "__main__":
     process_pdfs()
+=======
+from src.scipdf_parser import PDFParser
+
+p = PDFParser("data/prospective_2_RCT.pdf")
+print(p.title)
+print(p.abstract)
+methods = p.get_section("methods")
+print(p.summary())
+>>>>>>> 2e1e95e (init)

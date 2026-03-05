@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import time
+
 import dotenv
 dotenv.load_dotenv()
 
@@ -11,7 +13,7 @@ from typing import Generator, TypeVar, Union
 import urllib3
 urllib3.disable_warnings()
 
-S2_API_KEY = os.environ.get('S2_API_KEY', '')
+S2_API_KEY = os.environ.get('S2_API_KEY', 'IDlKl3Nk3A18mFoTFIJkZF6BPjjCSPe4xGk8ewS0')
 
 T = TypeVar('T')
 def get_paper(session: Session, paper_id: str, fields: str = 'paperId,title', **kwargs) -> dict:
@@ -25,6 +27,7 @@ def get_paper(session: Session, paper_id: str, fields: str = 'paperId,title', **
 
     with session.get(f'https://api.semanticscholar.org/graph/v1/paper/{paper_id}', params=params, headers=headers) as response:
         response.raise_for_status()
+        time.sleep(0.5)  # throttle requests
         return response.json()
 
 
@@ -39,8 +42,10 @@ def download_pdf(session: Session, url: str, path: str, user_agent: str = 'reque
         # check if the request was successful
         response.raise_for_status()
 
-        if response.headers['content-type'] != 'application/pdf':
-            raise Exception('The response is not a pdf')
+        content_type = response.headers.get('content-type', '')
+
+        if 'application/pdf' not in content_type:
+            raise Exception(f'Not a PDF (content-type={content_type})')
 
         with open(path, 'wb') as f:
             # write the response to the file, chunk_size bytes at a time
@@ -120,12 +125,12 @@ def main(args: argparse.Namespace) -> None:
     count = 0
     paper_ids = []
     with open(args.output, 'w') as csvfile:
-        fieldnames = ['pmid', 'title', 'first_author', 'year', 'abstract', 'ss_id']
+        fieldnames = ['pmid', 'title', 'first_author', 'year', 'abstract', 'ss_id', 'isOpenAccess', 'openAccessPdf']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
         ids = [f'PMID:{pmid}' for pmid in pmids]
-        fields = 'externalIds,title,authors,year,abstract'
+        fields = 'externalIds,title,authors,year,abstract,isOpenAccess,openAccessPdf'
 
         for paper in get_papers(ids, fields=fields):
             # If an ID is not found, the corresponding entry in the response will be null.
@@ -140,13 +145,15 @@ def main(args: argparse.Namespace) -> None:
                 'year': paper['year'],
                 'abstract': paper['abstract'],
                 'ss_id' : paper['paperId'],
+                'isOpenAccess': paper['isOpenAccess'],
+                'openAccessPdf': paper['openAccessPdf']['url'] if paper['isOpenAccess'] and paper['openAccessPdf'] else None,
             })
             paper_ids.append(paper['paperId'])
             count += 1
 
     print(f'Wrote {count} results to {args.output}')
 
-    for paper_id, result in download_papers(paper_ids, directory='pdfs', user_agent='requests/2.0.0'):
+    for paper_id, result in download_papers(paper_ids, directory='pdfs', user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'):
         if isinstance(result, Exception):
             print(f"Failed to download '{paper_id}': {type(result).__name__}: {result}")
         elif result is None:

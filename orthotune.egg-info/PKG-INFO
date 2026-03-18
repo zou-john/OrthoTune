@@ -1,8 +1,0 @@
-Metadata-Version: 2.4
-Name: orthotune
-Version: 0.1.0
-Requires-Dist: openai==2.24.0
-Requires-Dist: python-dotenv==1.2.2
-Requires-Dist: pandas
-Requires-Dist: openpyxl
-Requires-Dist: numpy

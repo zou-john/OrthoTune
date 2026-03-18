@@ -1,4 +1,8 @@
-orthotune
-__pycache__/
+.venv
 .env
-output
+
+data/*
+!data/.gitkeep
+
+__pycache__/
+

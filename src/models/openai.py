@@ -1,16 +1,11 @@
 from openai import OpenAI
-from src.llm import LLM
+from src.core.llm import LLM
 
 
 class OpenAIModel(LLM):
     """OpenAI chat completions backend."""
 
     def __init__(self, model: str, api_key: str | None = None):
-        """
-        Args:
-            model:   OpenAI model name, e.g. "gpt-4o" or "gpt-4o-mini".
-            api_key: Optional API key. Falls back to the OPENAI_API_KEY env var.
-        """
         super().__init__(model, api_key)
         self._client = OpenAI(api_key=api_key)
 

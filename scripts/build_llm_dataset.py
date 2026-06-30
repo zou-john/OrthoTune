@@ -1,26 +1,41 @@
-"""Build a dataset from ortho_v1.csv preserving Key, Title, and Full Text."""
+"""build a dataset from orthotune.csv preserving pmid, title, full text, and limitations."""
 
 import json
 import pandas as pd
 
-CSV_PATH = "data/ortho_v1.csv"
+CSV_PATH = "data/orthotune.csv"
 OUTPUT_PATH = "data/llm_dataset.json"
-MAX_ROWS = 50
 
 
 def main():
-    df = pd.read_csv(CSV_PATH, usecols=["Key", "Title", "Full Text"])
+    # load only the columns we need
+    df = pd.read_csv(CSV_PATH, usecols=["PMID", "Title", "Full Text", "Limitations"])
 
     total = len(df)
+
+    # drop rows where full text is missing or blank
     df = df.dropna(subset=["Full Text"])
     df = df[df["Full Text"].str.strip() != ""]
-    df = df.head(MAX_ROWS)
+
+    # normalize whitespace: replace non-breaking spaces and collapse runs of whitespace
+    for col in ["Full Text", "Limitations"]:
+        df[col] = df[col].str.replace(" ", " ", regex=False).str.split().str.join(" ")
+
+    # count words by splitting on whitespace
+    df["full_text_word_length"] = df["Full Text"].str.split().str.len()
 
     print(f"Total rows: {total}")
     print(f"Rows with Full Text: {len(df)}")
 
+    # build list of records for json output
     records = [
-        {"key": row["Key"], "title": row["Title"], "full_text": row["Full Text"]}
+        {
+            "pmid": row["PMID"],
+            "title": row["Title"],
+            "full_text": row["Full Text"],
+            "limitations": row["Limitations"],
+            "full_text_word_length": row["full_text_word_length"],
+        }
         for _, row in df.iterrows()
     ]
 

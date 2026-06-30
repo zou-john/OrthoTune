@@ -31,4 +31,10 @@ def create_llm(model: str, api_key: str | None = None) -> LLM:
     if model.startswith(("gpt-", "o1", "o3", "o4")):
         from src.models.openai import OpenAIModel
         return OpenAIModel(model, api_key=api_key)
+    if model.startswith("claude-"):
+        from src.models.anthropic import AnthropicModel
+        return AnthropicModel(model, api_key=api_key)
+    if model.startswith("gemini-"):
+        from src.models.gemini import GeminiModel
+        return GeminiModel(model, api_key=api_key)
     raise ValueError(f"Unknown model {model!r}. Add its prefix to create_llm().")

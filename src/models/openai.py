@@ -15,6 +15,7 @@ class OpenAIModel(LLM):
             messages=messages,
             **kwargs,
         )
+        self.last_usage = response.usage
         return response.choices[0].message.content
 
     def complete(self, prompt: str, system: str | None = None, **kwargs) -> str:
